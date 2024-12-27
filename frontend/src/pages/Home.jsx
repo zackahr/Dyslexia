@@ -8,7 +8,7 @@ const Home = () => {
       maxWidth="md"
       sx={{
         textAlign: 'center',
-        mt: 8,
+        mt: 25,
         padding: 4,
         borderRadius: 4,
         boxShadow: '0px 15px 30px rgba(0, 0, 0, 0.1)',

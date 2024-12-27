@@ -8,18 +8,35 @@ const Login = () => {
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (username === 'admin' && password === 'password') {
-      // Simulate successful login
-      navigate('/'); // Redirect to home or another page after successful login
-    } else {
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the token in localStorage
+        localStorage.setItem('authToken', data.access_token);
+        // Redirect to home page or any other page after successful login
+        navigate('/');
+      } else {
+        setError(true);
+      }
+    } catch (err) {
+      console.error('Login failed:', err);
       setError(true);
     }
   };
 
   return (
     <Container
-      maxWidth="xd"
+      maxWidth="100vw"
       sx={{
         display: 'flex',
         justifyContent: 'center',

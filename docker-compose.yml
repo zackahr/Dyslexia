@@ -6,6 +6,9 @@ services:
     container_name: nestjs-backend
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     environment:
       - MONGO_URI=mongodb://mongodb:27017/dyslexia
     depends_on:
@@ -17,6 +20,9 @@ services:
     container_name: react-frontend
     ports:
       - "8080:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     restart: always

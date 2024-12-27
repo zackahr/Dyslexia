@@ -16,7 +16,7 @@ const Play = () => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ mt: 5 }}>
+        <Container maxWidth="md" sx={{ mt: 6 }}>
             <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', color: '#1976D2' }}>
                 Upload and View PDF
             </Typography>
