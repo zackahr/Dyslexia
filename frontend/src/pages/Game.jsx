@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Table, TableBody, TableCell, TableHead, TableRow,
     IconButton, Dialog, DialogTitle, DialogContent,
@@ -6,6 +6,7 @@ import {
     Container, TableContainer, Paper, Typography, Box,
 } from '@mui/material';
 import { Add, MoreVert } from '@mui/icons-material';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate from React Router
 
 const Game = () => {
@@ -17,9 +18,27 @@ const Game = () => {
     const [newGameName, setNewGameName] = useState('');
     const [gameToDelete, setGameToDelete] = useState(null);
     const [error, setError] = useState(false);
-    const [menuRowIndex, setMenuRowIndex] = useState(null); // Track the index of the menu
+    const [menuRowIndex, setMenuRowIndex] = useState(null);
 
-    const navigate = useNavigate(); // Create navigate function
+    const navigate = useNavigate();
+
+    // Fetch games from the server
+    useEffect(() => {
+        const fetchGames = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/game'); // Replace with your API endpoint
+                if (Array.isArray(response.data)) {
+                    setGames(response.data);
+                } else {
+                    console.error('Expected an array but received:', response.data);
+                    setGames([]); // Fallback to an empty array
+                }
+            } catch (error) {
+                console.error('Error fetching games:', error);
+            }
+        };
+        fetchGames();
+    }, []);
 
     const handleAddGame = () => {
         setOpen(true);
@@ -37,30 +56,38 @@ const Game = () => {
 
     const handleMenuOpen = (event, index) => {
         setAnchorEl(event.currentTarget);
-        setMenuRowIndex(index); // Set the row index of the menu
+        setMenuRowIndex(index);
     };
 
     const handleMenuClose = () => {
         setAnchorEl(null);
-        setMenuRowIndex(null); // Reset the menu index
+        setMenuRowIndex(null);
     };
 
-    const handleSaveGame = () => {
+    const handleSaveGame = async () => {
         if (newGameName.trim() === '') {
             setError(true);
             return;
         }
-        if (currentGameIndex !== null) {
-            const updatedGames = [...games];
-            updatedGames[currentGameIndex] = {
-                ...updatedGames[currentGameIndex],
-                name: newGameName,
-            };
-            setGames(updatedGames);
-        } else {
-            setGames([...games, { name: newGameName, date: new Date().toLocaleDateString() }]);
+
+        try {
+            if (currentGameIndex !== null) {
+                // Update existing game
+                const updatedGame = { ...games[currentGameIndex], name: newGameName };
+                await axios.put(`http://localhost:3000/game/${updatedGame.id}`, updatedGame); // Replace with your API endpoint
+                const updatedGames = [...games];
+                updatedGames[currentGameIndex] = updatedGame;
+                setGames(updatedGames);
+            } else {
+                // Add new game
+                const newGame = { name: newGameName, date: new Date().toISOString() };
+                const response = await axios.post('http://localhost:3000/game', newGame); // Replace with your API endpoint
+                setGames([...games, response.data]);
+            }
+            handleClose();
+        } catch (error) {
+            console.error('Error saving game:', error);
         }
-        handleClose();
     };
 
     const handleDeleteDialogOpen = (index) => {
@@ -74,14 +101,19 @@ const Game = () => {
         setGameToDelete(null);
     };
 
-    const handleDeleteGame = () => {
-        setGames(games.filter((_, i) => i !== gameToDelete));
+    const handleDeleteGame = async () => {
+        try {
+            const game = games[gameToDelete];
+            await axios.delete(`http://localhost:3000/game/${game.id}`); // Replace with your API endpoint
+            setGames(games.filter((_, i) => i !== gameToDelete));
+        } catch (error) {
+            console.error('Error deleting game:', error);
+        }
         handleDeleteDialogClose();
     };
 
-    // Handle navigation to the /play page when a game row is clicked
     const handleRowClick = (index) => {
-        navigate('/play', { state: { game: games[index] } }); // Pass the game data via state
+        navigate('/play', { state: { game: games[index] } });
     };
 
     return (
@@ -107,84 +139,67 @@ const Game = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {games.map((game, index) => (
-                            <TableRow
-                                key={index}
-                                sx={{
-                                    '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' },
-                                    '&:hover': { backgroundColor: '#f1f1f1' },
-                                }}
-                            >
-                                <TableCell sx={{cursor: 'pointer'}} onClick={() => handleRowClick(index)}>{game.name}</TableCell>
-                                <TableCell>{game.date}</TableCell>
-                                <TableCell align="right">
-                                    <IconButton onClick={(event) => handleMenuOpen(event, index)}>
-                                        <MoreVert />
-                                    </IconButton>
-                                    <Menu
-                                        anchorEl={anchorEl}
-                                        open={Boolean(anchorEl && menuRowIndex === index)}
-                                        onClose={handleMenuClose}
-                                    >
-                                        <MenuItem
-                                            onClick={() => {
-                                                setCurrentGameIndex(index); // Use the correct index
-                                                setNewGameName(game.name);
-                                                setOpen(true);
-                                                handleMenuClose();
-                                            }}
+                        {Array.isArray(games) && games.length > 0 ? (
+                            games.map((game, index) => (
+                                <TableRow key={game.id} /* other props */>
+                                    <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleRowClick(index)}>
+                                        {game.name}
+                                    </TableCell>
+                                    <TableCell>{new Date(game.date).toLocaleDateString()}</TableCell>
+                                    <TableCell align="right">
+                                        <IconButton onClick={(event) => handleMenuOpen(event, index)}>
+                                            <MoreVert />
+                                        </IconButton>
+                                        <Menu
+                                            anchorEl={anchorEl}
+                                            open={Boolean(anchorEl && menuRowIndex === index)}
+                                            onClose={handleMenuClose}
                                         >
-                                            Edit
-                                        </MenuItem>
-                                        <MenuItem onClick={() => handleDeleteDialogOpen(index)}>Delete</MenuItem>
-                                    </Menu>
+                                            <MenuItem
+                                                onClick={() => {
+                                                    setCurrentGameIndex(index);
+                                                    setNewGameName(game.name);
+                                                    setOpen(true);
+                                                    handleMenuClose();
+                                                }}
+                                            >
+                                                Edit
+                                            </MenuItem>
+                                            <MenuItem onClick={() => handleDeleteDialogOpen(index)}>Delete</MenuItem>
+                                        </Menu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={3} align="center">
+                                    No games available.
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
 
             {/* Dialog for adding/editing a game */}
-            <Dialog sx={{ backdropFilter: 'blur(5px)' }} open={open} onClose={handleClose}>
-                <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center', pb: 2 }}>
-                    {currentGameIndex !== null ? 'Edit Game' : 'Add Game'}
-                </DialogTitle>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>{currentGameIndex !== null ? 'Edit Game' : 'Add Game'}</DialogTitle>
                 <DialogContent>
-                    <Box sx={{ py: 2 }}>
-                        <TextField
-                            fullWidth
-                            label="Game Name"
-                            value={newGameName}
-                            onChange={(e) => {
-                                setNewGameName(e.target.value);
-                                setError(false);
-                            }}
-                            error={error}
-                            helperText={error ? 'Game name cannot be empty' : ''}
-                            sx={{
-                                '& .MuiInputBase-root': { borderRadius: 2 },
-                                '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: 'primary.main',
-                                },
-                            }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-                    <Button onClick={handleClose} sx={{ px: 4 }}>
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSaveGame}
-                        variant="contained"
-                        color="primary"
-                        sx={{
-                            px: 4,
-                            background: 'linear-gradient(to right, #1e3c72, #2a5298)',
-                            color: '#fff',
+                    <TextField
+                        fullWidth
+                        label="Game Name"
+                        value={newGameName}
+                        onChange={(e) => {
+                            setNewGameName(e.target.value);
+                            setError(false);
                         }}
-                    >
+                        error={error}
+                        helperText={error ? 'Game name cannot be empty' : ''}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleSaveGame} variant="contained">
                         {currentGameIndex !== null ? 'Save Changes' : 'Add Game'}
                     </Button>
                 </DialogActions>

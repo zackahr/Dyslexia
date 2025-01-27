@@ -87,23 +87,6 @@ const Navbar = () => {
                         Participant
                     </Button>
                     <Button
-                        component={Link}
-                        to="/play"
-                        sx={{
-                            color: '#FFFFFF',
-                            fontWeight: 'bold',
-                            fontSize: '1rem',
-                            textTransform: 'none',
-                            marginX: 1,
-                            borderBottom: '2px solid transparent',
-                            '&:hover': {
-                                borderBottom: '2px solid #FFD700',
-                            },
-                        }}
-                    >
-                        Play
-                    </Button>
-                    <Button
                         onClick={handleLogout}
                         sx={{
                             color: '#FFFFFF',
