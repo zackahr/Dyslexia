@@ -7,7 +7,6 @@ import {
   Button,
   TextField,
 } from '@mui/material';
-import axios from 'axios';
 
 const GameDialog = ({ open, onClose, game, onSubmit }) => {
   const [name, setName] = useState('');
@@ -26,14 +25,6 @@ const GameDialog = ({ open, onClose, game, onSubmit }) => {
   const handleSubmit = async () => {
     try {
       const gameData = { name, date };
-
-      if (game) {
-        // Update the game
-        await axios.put(`http://localhost:3000/game/${game._id}`, gameData);
-      } else {
-        // Create a new game
-        await axios.post('http://localhost:3000/game', gameData);
-      }
       onSubmit(gameData);
       onClose();
     } catch (error) {

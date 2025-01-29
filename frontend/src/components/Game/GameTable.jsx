@@ -17,8 +17,6 @@ import {
 import { 
   Add, 
   VideogameAsset, 
-  Edit, 
-  Delete, 
   CalendarToday,
   FolderOpen 
 } from '@mui/icons-material';

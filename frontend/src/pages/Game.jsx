@@ -35,24 +35,16 @@ const Game = () => {
   };
 
   const handleSaveGame = async (gameData) => {
+    console.log('Saving game...'); // Debugging
     try {
       if (currentGame) {
-        // Ensure that the current game has the ID and update the game
         const updatedGame = { ...currentGame, ...gameData };
-        
-        // If game already exists, perform a PUT request to update the game
         await axios.put(`http://localhost:3000/game/${updatedGame._id}`, updatedGame);
-        
-        // Update the games state with the updated game
         setGames((prev) => prev.map((g) => (g._id === updatedGame._id ? updatedGame : g)));
       } else {
-        // If there's no current game (it's a new game), perform a POST request to add the game
         const response = await axios.post('http://localhost:3000/game', gameData);
-        
-        // Add the newly created game to the state
         setGames((prev) => [...prev, response.data]);
       }
-      
       setOpen(false); // Close the dialog after saving
     } catch (error) {
       console.error('Error saving game:', error);
