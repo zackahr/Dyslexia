@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Put, Param, Delete, Get,Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Body, Put, Param, Delete, Get, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { GameService } from './game.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
@@ -53,11 +53,12 @@ export class GameController {
   }
 
   // Remove PDF from a specific game
-  @Delete(':id/pdf/:pdfName')
+
+  @Delete(':id/pdf/:pdfId')
   async deletePdfFromGame(
     @Param('id') id: string,
-    @Param('pdfName') pdfName: string,
+    @Param('pdfId') pdfId: string,
   ) {
-    return this.gameService.deletePdfFromGame(id, pdfName);
+    return this.gameService.deletePdfFromGame(id, pdfId);
   }
 }

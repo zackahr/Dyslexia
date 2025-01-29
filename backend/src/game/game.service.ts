@@ -42,8 +42,36 @@ export class GameService implements OnModuleInit {
     return this.gameModel.find().exec();
   }
 
-  async findGameById(id: string): Promise<Game | null> {
-    return this.gameModel.findById(id).exec();
+  async findGameById(id: string): Promise<any> {
+    const game = await this.gameModel.findById(id).exec();
+    if (!game) {
+      return null;
+    }
+  
+    // Ensure gridFSBucket is initialized
+    if (!this.gridFSBucket) {
+      throw new Error('GridFSBucket not initialized');
+    }
+  
+    // Fetch PDF details for each PDF ID
+    const pdfsWithDetails = await Promise.all(
+      game.pdfs.map(async (pdfId: mongoose.Types.ObjectId) => {
+        const files = await this.gridFSBucket.find({ _id: pdfId }).toArray();
+        if (files.length > 0) {
+          return {
+            id: pdfId.toString(),
+            filename: files[0].filename,
+          };
+        } else {
+          return { id: pdfId.toString(), filename: 'Unknown' };
+        }
+      })
+    );
+  
+    return {
+      ...game.toObject(),
+      pdfs: pdfsWithDetails,
+    };
   }
 
   // Upload PDF to GridFS

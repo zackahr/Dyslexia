@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Game from './components/Game/index';
+import Game from './pages/Game';
 import Player from './pages/Player';
 import Login from './pages/Login';
 import GamePDFs from './components/Game/GamePDFs';

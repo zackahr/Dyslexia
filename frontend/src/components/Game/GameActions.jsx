@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
-import { IconButton, Menu, MenuItem } from '@mui/material';
-import { MoreVert } from '@mui/icons-material';
+// GameActions.js
+import React from 'react';
+import { IconButton, Tooltip, Box } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 
-const GameActions = ({ game, onEdit, onDelete }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-
-  return (
-    <>
-      <IconButton onClick={handleMenuOpen}>
-        <MoreVert />
+const GameActions = ({ game, onEdit, onDelete, sx }) => (
+  <Box sx={{ ...sx }}>
+    <Tooltip title="Edit Game">
+      <IconButton onClick={() => onEdit(game)} color="primary">
+        <Edit fontSize="small" />
       </IconButton>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={() => { onEdit(game); handleMenuClose(); }}>Edit</MenuItem>
-        <MenuItem onClick={() => { onDelete(game); handleMenuClose(); }}>Delete</MenuItem>
-      </Menu>
-    </>
-  );
-};
+    </Tooltip>
+    <Tooltip title="Delete Game">
+      <IconButton onClick={() => onDelete(game)} color="error">
+        <Delete fontSize="small" />
+      </IconButton>
+    </Tooltip>
+  </Box>
+);
 
 export default GameActions;
